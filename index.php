@@ -1,3 +1,3 @@
 <?php
-    echo "New Project";
+    require_once 'router.php';
 ?>
