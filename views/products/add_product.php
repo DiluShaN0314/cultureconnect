@@ -5,3 +5,5 @@
 echo 'New Product';
 
 ?>
+
+<?php include($_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/views/layouts/footer.php'); ?>
