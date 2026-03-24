@@ -16,10 +16,10 @@ error_log("Parsed Request Path: $requestPath");
 // Route mapping
 $routes = [
     '' => "views/user/dashboard.php",
-    /*'login' => 'views/auth/login.php',
+    'login' => 'views/auth/login.php',
     'register' => 'views/auth/register.php',
     'logout' => 'views/auth/logout.php',
-    'admin-dashboard' => "views/admin/dashboard.php",
+    /*'admin-dashboard' => "views/admin/dashboard.php",
     'user-dashboard' => "views/user/dashboard.php",*/
     'products' => 'views/products/index.php',
     'products/add' => 'views/products/add_product.php',
