@@ -19,8 +19,8 @@ $routes = [
     'login' => 'views/auth/login.php',
     'register' => 'views/auth/register.php',
     'logout' => 'views/auth/logout.php',
-    /*'admin-dashboard' => "views/admin/dashboard.php",
-    'user-dashboard' => "views/user/dashboard.php",*/
+    'admin-dashboard' => "views/admin/dashboard.php",
+    'user-dashboard' => "views/user/dashboard.php",
     'products' => 'views/products/index.php',
     'products/add' => 'views/products/add_product.php',
 ];

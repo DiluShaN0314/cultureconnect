@@ -3,26 +3,42 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/config/database.php';
+$database = new Database();
+$conn = $database->getConnection();
+
+$areas = [];
 $error = '';
 $success = '';
 
+// Load areas for the dropdown
+try {
+    if ($conn) {
+        $stmtAreas = $conn->prepare("SELECT id, name FROM areas ORDER BY name ASC");
+        $stmtAreas->execute();
+        $areas = $stmtAreas->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (PDOException $e) {
+    $error = "Failed to load areas.";
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/config/database.php';
-    
     $name = trim($_POST['username'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
+    $age_group = trim($_POST['age_group'] ?? '');
+    $gender = trim($_POST['gender'] ?? '');
+    $area_id = trim($_POST['area_id'] ?? '');
     
-    if (empty($name) || empty($email) || empty($password)) {
+    if (empty($name) || empty($email) || empty($password) || empty($age_group) || empty($gender) || empty($area_id)) {
         $error = "Please fill in all required fields.";
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
+    } elseif (!$conn) {
+        $error = "Database connection failed.";
     } else {
         try {
-            $database = new Database();
-            $conn = $database->getConnection();
-            
             // Check if email already exists
             $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
             $stmt->bindParam(':email', $email);
@@ -32,13 +48,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Email is already registered.";
             } else {
                 // Insert user
-                $sql = "INSERT INTO users (name, email, password) VALUES (:name, :email, :password)";
+                $role = 'user';
+                $sql = "INSERT INTO users (name, email, password, age_group, gender, area_id, role) VALUES (:name, :email, :password, :age_group, :gender, :area_id, :role)";
                 $stmt = $conn->prepare($sql);
                 
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                 $stmt->bindParam(':name', $name);
                 $stmt->bindParam(':email', $email);
                 $stmt->bindParam(':password', $hashed_password);
+                $stmt->bindParam(':age_group', $age_group);
+                $stmt->bindParam(':gender', $gender);
+                $stmt->bindParam(':area_id', $area_id);
+                $stmt->bindParam(':role', $role);
                 
                 if ($stmt->execute()) {
                     $success = "Registration successful! You can now login.";
@@ -110,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 14px;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
             border: 1px solid #bdc3c7;
@@ -118,9 +139,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
             font-size: 14px;
             transition: border-color 0.3s ease;
+            background: white;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: #3498db;
         }
@@ -209,6 +231,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="age_group">Age Group</label>
+                <select id="age_group" name="age_group" required>
+                    <option value="">Select Age Group</option>
+                    <option value="18-25">18-25</option>
+                    <option value="26-35">26-35</option>
+                    <option value="36-45">36-45</option>
+                    <option value="46-60">46-60</option>
+                    <option value="60+">60+</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer Not to Say">Prefer Not to Say</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="area_id">Area</label>
+                <select id="area_id" name="area_id" required>
+                    <option value="">Select Area</option>
+                    <?php foreach ($areas as $area): ?>
+                        <option value="<?php echo htmlspecialchars($area['id']); ?>">
+                            <?php echo htmlspecialchars($area['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div class="form-group">

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 20, 2026 at 10:55 AM
+-- Generation Time: Mar 24, 2026 at 01:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -126,16 +126,18 @@ CREATE TABLE `users` (
   `age_group` varchar(50) DEFAULT NULL,
   `gender` varchar(20) DEFAULT NULL,
   `area_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `role` enum('admin','user') DEFAULT 'user'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `age_group`, `gender`, `area_id`, `created_at`) VALUES
-(1, 'John Doe', 'john@example.com', 'hashed_password', '18-25', 'Male', 1, '2026-03-20 09:54:52'),
-(2, 'Jane Smith', 'jane@example.com', 'hashed_password', '26-35', 'Female', 2, '2026-03-20 09:54:52');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `age_group`, `gender`, `area_id`, `created_at`, `role`) VALUES
+(1, 'John Doe', 'john@example.com', 'hashed_password', '18-25', 'Male', 1, '2026-03-20 09:54:52', 'user'),
+(2, 'Jane Smith', 'jane@example.com', 'hashed_password', '26-35', 'Female', 2, '2026-03-20 09:54:52', 'user'),
+(3, 'dilushan', 'dilushan0314@gmail.com', '$2y$10$qESiB7MYxVwG4F4IFV7df.emhlkBB4GaH4xfQflmAvGbkA7wRzua2', NULL, NULL, NULL, '2026-03-24 11:32:54', 'admin');
 
 -- --------------------------------------------------------
 
@@ -254,7 +256,7 @@ ALTER TABLE `smes`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `votes`

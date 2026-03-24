@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn = $database->getConnection();
             
             // Check by name or email
-            $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE name = :username OR email = :username LIMIT 1");
+            $stmt = $conn->prepare("SELECT id, name, password, role FROM users WHERE name = :username OR email = :username LIMIT 1");
             $stmt->bindParam(':username', $username);
             $stmt->execute();
             
@@ -30,8 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($row['password'] === 'hashed_password' || password_verify($password, $row['password']) || $row['password'] === $password) {
                     $_SESSION['user_id'] = $row['id'];
                     $_SESSION['username'] = $row['name'];
+                    $_SESSION['role'] = $row['role'] ?? 'user';
                     
-                    header("Location: /cultureconnect/");
+                    if ($_SESSION['role'] === 'admin') {
+                        header("Location: /cultureconnect/admin-dashboard");
+                    } else {
+                        header("Location: /cultureconnect/user-dashboard");
+                    }
                     exit;
                 } else {
                     $error = "Invalid password.";
