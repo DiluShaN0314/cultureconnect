@@ -2,18 +2,19 @@
 
 <div class="content">
     <div class="flex-between mb-20">
-        <h2>Add New Area</h2>
+        <h2>Edit Area</h2>
         <a href="/cultureconnect/areas" class="btn btn-secondary">&larr; Back to Areas</a>
     </div>
 
     <div class="activity max-width-500">
-        <form action="/cultureconnect/areas/store" method="POST">
+        <form action="/cultureconnect/areas/update" method="POST">
+            <input type="hidden" name="id" value="<?php echo $area['id']; ?>">
             <div class="form-group">
                 <label for="name">Area Name</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="name" name="name" value="<?php echo $area['name']; ?>" required>
             </div>
             <div class="flex-gap-10">
-                <button type="submit" class="btn btn-success">Save Area</button>
+                <button type="submit" class="btn btn-success">Update Area</button>
                 <a href="/cultureconnect/areas" class="btn btn-secondary">Cancel</a>
             </div>
         </form>

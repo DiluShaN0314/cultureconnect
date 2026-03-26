@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn = $database->getConnection();
             
             // Check by name or email
-            $stmt = $conn->prepare("SELECT id, name, password, role FROM users WHERE name = :username OR email = :username LIMIT 1");
+            $stmt = $conn->prepare("SELECT id, name, password, role, sme_id FROM users WHERE name = :username OR email = :username LIMIT 1");
             $stmt->bindParam(':username', $username);
             $stmt->execute();
             
@@ -31,9 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['user_id'] = $row['id'];
                     $_SESSION['username'] = $row['name'];
                     $_SESSION['role'] = $row['role'] ?? 'user';
+                    $_SESSION['sme_id'] = $row['sme_id'] ?? null;
                     
                     if ($_SESSION['role'] === 'admin') {
                         header("Location: /cultureconnect/admin-dashboard");
+                    } elseif ($_SESSION['role'] === 'sme') {
+                        header("Location: /cultureconnect/sme-dashboard");
                     } else {
                         header("Location: /cultureconnect/user-dashboard");
                     }
@@ -56,122 +59,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CultureConnect</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .login-container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .login-header h2 {
-            margin: 0;
-            color: #2c3e50;
-            font-size: 28px;
-        }
-
-        .login-header p {
-            color: #7f8c8d;
-            margin-top: 5px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #34495e;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-login:hover {
-            background-color: #2980b9;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .login-footer a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        .login-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .error-message {
-            color: #e74c3c;
-            background-color: #fadbd8;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="/cultureconnect/assets/css/style.css">
 </head>
-<body>
+<body class="auth-body">
 
-    <div class="login-container">
-        <div class="login-header">
+    <div class="auth-container">
+        <div class="auth-logo">
+            <a href="/cultureconnect/">CultureConnect</a>
+        </div>
+        
+        <div class="auth-header">
             <h2>Welcome Back</h2>
-            <p>Sign in to continue to CultureConnect</p>
+            <p>Please enter your details to sign in</p>
         </div>
 
         <?php if(isset($error) && !empty($error)): ?>
@@ -191,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
 
-            <button type="submit" class="btn-login">Login</button>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
         </form>
 
         <div class="login-footer">

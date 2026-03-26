@@ -11,32 +11,33 @@ $areas = [];
 $error = '';
 $success = '';
 
-// Load areas for the dropdown
+// Load areas and interests
 try {
     if ($conn) {
         $stmtAreas = $conn->prepare("SELECT id, name FROM areas ORDER BY name ASC");
         $stmtAreas->execute();
         $areas = $stmtAreas->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtInterests = $conn->prepare("SELECT id, name FROM interests ORDER BY name ASC");
+        $stmtInterests->execute();
+        $interests_list = $stmtInterests->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (PDOException $e) {
-    $error = "Failed to load areas.";
+    $error = "Failed to load dynamic data.";
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['username'] ?? '');
+    $role = $_POST['role'] ?? 'user';
+    $name = trim($_POST['username'] ?? ''); // This will be Contact Person for SME
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
-    $age_group = trim($_POST['age_group'] ?? '');
-    $gender = trim($_POST['gender'] ?? '');
-    $area_id = trim($_POST['area_id'] ?? '');
-    
-    if (empty($name) || empty($email) || empty($password) || empty($age_group) || empty($gender) || empty($area_id)) {
+
+    // Common validation
+    if (empty($name) || empty($email) || empty($password)) {
         $error = "Please fill in all required fields.";
     } elseif ($password !== $confirm_password) {
         $error = "Passwords do not match.";
-    } elseif (!$conn) {
-        $error = "Database connection failed.";
     } else {
         try {
             // Check if email already exists
@@ -47,28 +48,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->rowCount() > 0) {
                 $error = "Email is already registered.";
             } else {
+                $conn->beginTransaction();
+                
+                $sme_id = null;
+                if ($role === 'sme') {
+                    $business_name = trim($_POST['business_name'] ?? '');
+                    $phone = trim($_POST['phone'] ?? '');
+                    $portfolio = trim($_POST['portfolio_link'] ?? '');
+                    
+                    if (empty($business_name)) {
+                        throw new Exception("Business Name is required for SME registration.");
+                    }
+                    
+                    $stmtSme = $conn->prepare("INSERT INTO smes (business_name, contact_email, phone, portfolio_link) VALUES (:bn, :ce, :ph, :pl)");
+                    $stmtSme->execute([':bn' => $business_name, ':ce' => $email, ':ph' => $phone, ':pl' => $portfolio]);
+                    $sme_id = $conn->lastInsertId();
+                }
+
                 // Insert user
-                $role = 'user';
-                $sql = "INSERT INTO users (name, email, password, age_group, gender, area_id, role) VALUES (:name, :email, :password, :age_group, :gender, :area_id, :role)";
+                $age_group = !empty($_POST['age_group']) ? trim($_POST['age_group']) : null;
+                $gender = !empty($_POST['gender']) ? trim($_POST['gender']) : null;
+                $area_id = !empty($_POST['area_id']) ? trim($_POST['area_id']) : null;
+
+                $sql = "INSERT INTO users (name, email, password, age_group, gender, area_id, role, sme_id) 
+                        VALUES (:name, :email, :password, :age_group, :gender, :area_id, :role, :sme_id)";
                 $stmt = $conn->prepare($sql);
                 
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt->bindParam(':name', $name);
-                $stmt->bindParam(':email', $email);
-                $stmt->bindParam(':password', $hashed_password);
-                $stmt->bindParam(':age_group', $age_group);
-                $stmt->bindParam(':gender', $gender);
-                $stmt->bindParam(':area_id', $area_id);
-                $stmt->bindParam(':role', $role);
+                $stmt->execute([
+                    ':name' => $name,
+                    ':email' => $email,
+                    ':password' => $hashed_password,
+                    ':age_group' => $age_group,
+                    ':gender' => $gender,
+                    ':area_id' => $area_id,
+                    ':role' => $role,
+                    ':sme_id' => $sme_id
+                ]);
                 
-                if ($stmt->execute()) {
-                    $success = "Registration successful! You can now login.";
-                } else {
-                    $error = "Something went wrong. Please try again.";
+                $user_id = $conn->lastInsertId();
+
+                // Save interests for Residents
+                if ($role === 'user' && !empty($_POST['interests'])) {
+                    $stmtInterest = $conn->prepare("INSERT INTO user_interests (user_id, interest_id) VALUES (:user_id, :interest_id)");
+                    foreach ($_POST['interests'] as $int_id) {
+                        $stmtInterest->execute([':user_id' => $user_id, ':interest_id' => $int_id]);
+                    }
                 }
+
+                $conn->commit();
+                $success = "Registration successful! You can now login.";
             }
-        } catch (PDOException $e) {
-            $error = "Database Error: " . $e->getMessage();
+        } catch (Exception $e) {
+            $conn->rollBack();
+            $error = $e->getMessage();
         }
     }
 }
@@ -79,135 +112,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - CultureConnect</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .register-container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 450px;
-            box-sizing: border-box;
-            margin: 20px;
-        }
-
-        .register-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .register-header h2 {
-            margin: 0;
-            color: #2c3e50;
-            font-size: 28px;
-        }
-
-        .register-header p {
-            color: #7f8c8d;
-            margin-top: 5px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #34495e;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-            background: white;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .btn-register {
-            width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .btn-register:hover {
-            background-color: #2980b9;
-        }
-
-        .register-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .register-footer a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        .register-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            background-color: #fadbd8;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            text-align: center;
-        }
-        
-        .success-message {
-            color: #27ae60;
-            background-color: #d5f5e3;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="/cultureconnect/assets/css/style.css">
 </head>
-<body>
+<body class="auth-body">
 
-    <div class="register-container">
-        <div class="register-header">
+    <div class="auth-container" style="max-width: 700px;">
+        <div class="auth-logo">
+            <a href="/cultureconnect/">CultureConnect</a>
+        </div>
+
+        <div class="auth-header">
             <h2>Create an Account</h2>
-            <p>Join CultureConnect today</p>
+            <p>Join our cultural community today</p>
         </div>
 
         <?php if(isset($error) && !empty($error)): ?>
@@ -222,69 +138,141 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form action="/cultureconnect/register" method="POST">
+        <form action="/cultureconnect/register" method="POST" id="register-form">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Choose a username" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="age_group">Age Group</label>
-                <select id="age_group" name="age_group" required>
-                    <option value="">Select Age Group</option>
-                    <option value="18-25">18-25</option>
-                    <option value="26-35">26-35</option>
-                    <option value="36-45">36-45</option>
-                    <option value="46-60">46-60</option>
-                    <option value="60+">60+</option>
+                <label for="role">Sign up as</label>
+                <select name="role" id="role-selector" required onchange="toggleFields()">
+                    <option value="user">Resident (Community Member)</option>
+                    <option value="sme">Small Business / Creative SME</option>
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="gender">Gender</label>
-                <select id="gender" name="gender" required>
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                    <option value="Prefer Not to Say">Prefer Not to Say</option>
-                </select>
+            <div class="grid-2">
+                <div class="form-group" id="name-group">
+                    <label for="username" id="name-label">Full Name</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <!-- SME Fields -->
+                <div id="sme-fields" style="display: none; grid-column: span 2;">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="business_name">Business Name</label>
+                            <input type="text" id="business_name" name="business_name" placeholder="Enter business name">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Contact Phone</label>
+                            <input type="text" id="phone" name="phone" placeholder="Contact number">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="portfolio_link">Portfolio / Website Link</label>
+                        <input type="url" id="portfolio_link" name="portfolio_link" placeholder="https://example.com">
+                    </div>
+                </div>
+
+                <!-- Resident Fields -->
+                <div id="resident-fields" style="display: contents;">
+                    <div class="form-group">
+                        <label for="age_group">Age Group</label>
+                        <select id="age_group" name="age_group">
+                            <option value="">Select Age Group</option>
+                            <option value="18-25">18-25</option>
+                            <option value="26-35">26-35</option>
+                            <option value="36-45">36-45</option>
+                            <option value="46-60">46-60</option>
+                            <option value="60+">60+</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer Not to Say">Prefer Not to Say</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="area_id">Residing Area</label>
+                        <select id="area_id" name="area_id">
+                            <option value="">Select your area</option>
+                            <?php foreach ($areas as $area): ?>
+                                <option value="<?php echo htmlspecialchars($area['id']); ?>">
+                                    <?php echo htmlspecialchars($area['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Areas of Interest</label>
+                        <div class="activity p-15 br-8 bg-light" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <?php foreach($interests_list as $interest): ?>
+                                <label class="cursor-pointer fs-14 flex items-center">
+                                    <input type="checkbox" name="interests[]" value="<?php echo $interest['id']; ?>" class="mr-10">
+                                    <?php echo htmlspecialchars($interest['name']); ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Create a password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" required>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="area_id">Area</label>
-                <select id="area_id" name="area_id" required>
-                    <option value="">Select Area</option>
-                    <?php foreach ($areas as $area): ?>
-                        <option value="<?php echo htmlspecialchars($area['id']); ?>">
-                            <?php echo htmlspecialchars($area['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
-            </div>
-
-            <button type="submit" class="btn-register">Register</button>
+            <button type="submit" class="btn btn-primary btn-block mt-15">Create Account</button>
         </form>
 
         <div class="register-footer">
             <p>Already have an account? <a href="/cultureconnect/login">Login here</a></p>
         </div>
     </div>
+
+    <script>
+    function toggleFields() {
+        const role = document.getElementById('role-selector').value;
+        const smeFields = document.getElementById('sme-fields');
+        const residentFields = document.getElementById('resident-fields');
+        const nameLabel = document.getElementById('name-label');
+        
+        if (role === 'sme') {
+            smeFields.style.display = 'block';
+            residentFields.style.display = 'none';
+            nameLabel.textContent = 'Contact Person Name';
+            document.getElementById('business_name').required = true;
+            document.getElementById('age_group').required = false;
+            document.getElementById('gender').required = false;
+            document.getElementById('area_id').required = false;
+        } else {
+            smeFields.style.display = 'none';
+            residentFields.style.display = 'contents';
+            nameLabel.textContent = 'Full Name';
+            document.getElementById('business_name').required = false;
+            document.getElementById('age_group').required = true;
+            document.getElementById('gender').required = true;
+            document.getElementById('area_id').required = true;
+        }
+    }
+    // Initial call
+    toggleFields();
+    </script>
 
 </body>
 </html>

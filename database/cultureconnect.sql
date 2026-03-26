@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 24, 2026 at 01:17 PM
+-- Generation Time: Mar 26, 2026 at 07:45 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -61,7 +61,18 @@ INSERT INTO `interests` (`id`, `name`) VALUES
 (2, 'Theatre'),
 (3, 'Music'),
 (4, 'Digital Media'),
-(5, 'Heritage');
+(5, 'Heritage'),
+(6, 'Visual Arts'),
+(7, 'Theatre'),
+(8, 'Music'),
+(9, 'Digital Media'),
+(10, 'Heritage'),
+(11, 'Literature'),
+(12, 'Creative Writing'),
+(13, 'Photography'),
+(14, 'Graphic Design'),
+(15, 'Performing Arts'),
+(16, 'Local History');
 
 -- --------------------------------------------------------
 
@@ -87,7 +98,8 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`id`, `sme_id`, `name`, `description`, `category`, `price_category`, `price`, `availability`, `created_at`) VALUES
 (1, 1, 'Painting Workshop', 'Learn painting basics', 'Art', 'Affordable', 50.00, 1, '2026-03-20 09:54:52'),
-(2, 2, 'Guitar Lessons', 'Beginner guitar classes', 'Music', 'Moderate', 120.00, 1, '2026-03-20 09:54:52');
+(2, 2, 'Guitar Lessons', 'Beginner guitar classes', 'Music', 'Moderate', 120.00, 1, '2026-03-20 09:54:52'),
+(4, 5, 'Pixel', 'mobile', 'Technology ', 'Premium', 999.00, 1, '2026-03-26 18:39:58');
 
 -- --------------------------------------------------------
 
@@ -110,7 +122,8 @@ CREATE TABLE `smes` (
 
 INSERT INTO `smes` (`id`, `business_name`, `contact_email`, `phone`, `portfolio_link`, `created_at`) VALUES
 (1, 'Creative Arts Studio', 'studio@example.com', '0712345678', 'http://portfolio.com', '2026-03-20 09:54:52'),
-(2, 'Music Hub', 'music@example.com', '0723456789', 'http://music.com', '2026-03-20 09:54:52');
+(2, 'Music Hub', 'music@example.com', '0723456789', 'http://music.com', '2026-03-20 09:54:52'),
+(5, 'KD', 'dilushan@codebasys.com', '0771234567', 'https://www.kd.com', '2026-03-26 18:02:44');
 
 -- --------------------------------------------------------
 
@@ -126,18 +139,21 @@ CREATE TABLE `users` (
   `age_group` varchar(50) DEFAULT NULL,
   `gender` varchar(20) DEFAULT NULL,
   `area_id` int(11) DEFAULT NULL,
+  `sme_id` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `role` enum('admin','user') DEFAULT 'user'
+  `role` enum('admin','user','sme') DEFAULT 'user'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `age_group`, `gender`, `area_id`, `created_at`, `role`) VALUES
-(1, 'John Doe', 'john@example.com', 'hashed_password', '18-25', 'Male', 1, '2026-03-20 09:54:52', 'user'),
-(2, 'Jane Smith', 'jane@example.com', 'hashed_password', '26-35', 'Female', 2, '2026-03-20 09:54:52', 'user'),
-(3, 'dilushan', 'dilushan0314@gmail.com', '$2y$10$qESiB7MYxVwG4F4IFV7df.emhlkBB4GaH4xfQflmAvGbkA7wRzua2', NULL, NULL, NULL, '2026-03-24 11:32:54', 'admin');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `age_group`, `gender`, `area_id`, `sme_id`, `created_at`, `role`) VALUES
+(1, 'John Doe', 'john@example.com', 'hashed_password', '18-25', 'Male', 1, NULL, '2026-03-20 09:54:52', 'user'),
+(2, 'Jane Smith', 'jane@example.com', 'hashed_password', '26-35', 'Female', 2, NULL, '2026-03-20 09:54:52', 'user'),
+(3, 'dilushan', 'dilushan0314@gmail.com', '$2y$10$qESiB7MYxVwG4F4IFV7df.emhlkBB4GaH4xfQflmAvGbkA7wRzua2', NULL, NULL, NULL, NULL, '2026-03-24 11:32:54', 'admin'),
+(4, 'kopi', 'kopikaselvarasa81@gmail.com', '$2y$10$9sWRW5mvzllxRbwmfGlxE.gedBJ9FPbOqZVG3gFxNJjMdv.QB9LDS', '26-35', 'Female', 1, NULL, '2026-03-26 15:48:28', 'user'),
+(7, 'dilu', 'dilushan@codebasys.com', '$2y$10$DeQvX/.xZCvybRvYy4n8jeAl1BufyLXytoUsHLaN/N99ezMb.Zo12', NULL, NULL, NULL, 5, '2026-03-26 18:02:44', 'sme');
 
 -- --------------------------------------------------------
 
@@ -149,6 +165,13 @@ CREATE TABLE `user_interests` (
   `user_id` int(11) NOT NULL,
   `interest_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_interests`
+--
+
+INSERT INTO `user_interests` (`user_id`, `interest_id`) VALUES
+(4, 3);
 
 -- --------------------------------------------------------
 
@@ -170,7 +193,10 @@ CREATE TABLE `votes` (
 
 INSERT INTO `votes` (`id`, `user_id`, `product_id`, `vote`, `created_at`) VALUES
 (1, 1, 1, 'Yes', '2026-03-20 09:54:52'),
-(2, 2, 2, 'Yes', '2026-03-20 09:54:52');
+(2, 2, 2, 'Yes', '2026-03-20 09:54:52'),
+(3, 4, 1, 'Yes', '2026-03-26 16:16:16'),
+(4, 4, 2, 'Yes', '2026-03-26 16:16:26'),
+(12, 4, 4, 'No', '2026-03-26 18:41:37');
 
 --
 -- Indexes for dumped tables
@@ -207,7 +233,8 @@ ALTER TABLE `smes`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
-  ADD KEY `area_id` (`area_id`);
+  ADD KEY `area_id` (`area_id`),
+  ADD KEY `fk_user_sme` (`sme_id`);
 
 --
 -- Indexes for table `user_interests`
@@ -232,37 +259,37 @@ ALTER TABLE `votes`
 -- AUTO_INCREMENT for table `areas`
 --
 ALTER TABLE `areas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `interests`
 --
 ALTER TABLE `interests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `smes`
 --
 ALTER TABLE `smes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `votes`
 --
 ALTER TABLE `votes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables
@@ -278,6 +305,7 @@ ALTER TABLE `products`
 -- Constraints for table `users`
 --
 ALTER TABLE `users`
+  ADD CONSTRAINT `fk_user_sme` FOREIGN KEY (`sme_id`) REFERENCES `smes` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`area_id`) REFERENCES `areas` (`id`) ON DELETE SET NULL;
 
 --
