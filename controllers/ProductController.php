@@ -6,7 +6,10 @@ class ProductController {
     // Display products for users
     public function index() {
         $productModel = new Product();
-        $stmt = $productModel->readAll();
+        $search = $_GET['search'] ?? null;
+        $category = $_GET['category'] ?? null;
+        $price_limit = $_GET['price_limit'] ?? null;
+        $stmt = $productModel->readAll(null, $search, $category, $price_limit);
         $products = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $products[] = $row;
@@ -35,7 +38,10 @@ class ProductController {
 
         $productModel = new Product();
         $sme_id = ($_SESSION['role'] === 'sme') ? $_SESSION['sme_id'] : null;
-        $stmt = $productModel->readAll($sme_id);
+        $search = $_GET['search'] ?? null;
+        $category = $_GET['category'] ?? null;
+        $price_limit = $_GET['price_limit'] ?? null;
+        $stmt = $productModel->readAll($sme_id, $search, $category, $price_limit);
         $products = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $products[] = $row;

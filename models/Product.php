@@ -19,12 +19,24 @@ class Product {
         $this->conn = $database->getConnection();
     }
 
-    public function readAll($sme_id = null) {
+    public function readAll($sme_id = null, $search = null, $category = null, $price_limit = null) {
         $query = "SELECT p.*, s.business_name FROM " . $this->table_name . " p 
-                  LEFT JOIN smes s ON p.sme_id = s.id";
+                  LEFT JOIN smes s ON p.sme_id = s.id WHERE 1=1";
         
         if ($sme_id) {
-            $query .= " WHERE p.sme_id = :sme_id";
+            $query .= " AND p.sme_id = :sme_id";
+        }
+        
+        if ($search) {
+            $query .= " AND (p.name LIKE :search OR p.description LIKE :search)";
+        }
+        
+        if ($category) {
+            $query .= " AND p.category = :category";
+        }
+
+        if ($price_limit) {
+            $query .= " AND p.price < :price_limit";
         }
         
         $query .= " ORDER BY p.created_at DESC";
@@ -33,6 +45,19 @@ class Product {
         
         if ($sme_id) {
             $stmt->bindParam(':sme_id', $sme_id);
+        }
+        
+        if ($search) {
+            $searchTerm = "%$search%";
+            $stmt->bindParam(':search', $searchTerm);
+        }
+        
+        if ($category) {
+            $stmt->bindParam(':category', $category);
+        }
+
+        if ($price_limit) {
+            $stmt->bindParam(':price_limit', $price_limit);
         }
         
         $stmt->execute();

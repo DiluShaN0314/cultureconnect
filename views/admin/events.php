@@ -6,6 +6,35 @@
         <a href="/cultureconnect/products/add" class="btn btn-success">+ Add New Product</a>
     </div>
 
+    <!-- Search and Filter Bar -->
+    <div class="activity p-20 mb-20">
+        <form method="GET" action="/cultureconnect/events" class="flex-between items-center flex-wrap gap-15">
+            <div class="flex-grow-1 flex-gap-10">
+                <input type="text" name="search" placeholder="Search by name or description..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="width: 100%; border-radius: 6px; border: 1px solid #ddd; padding: 10px;">
+            </div>
+            <div class="flex-gap-20 items-center">
+                <select name="category" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; background-color: white;">
+                    <option value="">All Categories</option>
+                    <option value="Art" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Art') ? 'selected' : ''; ?>>Art</option>
+                    <option value="Music" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Music') ? 'selected' : ''; ?>>Music</option>
+                    <option value="Theatre" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Theatre') ? 'selected' : ''; ?>>Theatre</option>
+                    <option value="Digital Media" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Digital Media') ? 'selected' : ''; ?>>Digital Media</option>
+                    <option value="Heritage" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Heritage') ? 'selected' : ''; ?>>Heritage</option>
+                </select>
+
+                <label class="flex-gap-5 items-center cursor-pointer">
+                    <input type="checkbox" name="price_limit" value="200" <?php echo (isset($_GET['price_limit']) && $_GET['price_limit'] == '200') ? 'checked' : ''; ?>>
+                    <span>Under £200</span>
+                </label>
+
+                <button type="submit" class="btn btn-success">Apply Filters</button>
+                <?php if(isset($_GET['search']) || isset($_GET['category']) || isset($_GET['price_limit'])): ?>
+                    <a href="/cultureconnect/events" class="btn btn-secondary">Clear</a>
+                <?php endif; ?>
+            </div>
+        </form>
+    </div>
+
     <div class="activity">
         <table>
             <thead>
