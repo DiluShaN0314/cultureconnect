@@ -3,7 +3,7 @@
 <div class="content">
     <div class="flex-between mb-20">
         <h2>Community Feedback Analysis</h2>
-        <a href="/cultureconnect/sme-dashboard" class="btn btn-secondary">&larr; Back to Dashboard</a>
+        <a href="/cultureconnect/sme-dashboard" class="btn btn-secondary" title="Back"><i class="fas fa-arrow-left"></i></a>
     </div>
 
     <div class="activity">

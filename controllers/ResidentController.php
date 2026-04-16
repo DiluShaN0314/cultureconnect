@@ -1,6 +1,7 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/models/Resident.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/models/Area.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/utils/EmailHelper.php';
 
 class ResidentController {
 
@@ -46,6 +47,32 @@ class ResidentController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $errors = [];
+            if (empty($_POST['name'])) $errors['name'] = "Full Name is required.";
+            if (empty($_POST['area_id'])) $errors['area_id'] = "Area is required.";
+
+            $residentModel = new Resident();
+            // Duplicate Check (Email)
+            $stmtCheck = $residentModel->conn->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
+            $stmtCheck->execute([':email' => $_POST['email']]);
+            if ($stmtCheck->rowCount() > 0) {
+                $errors['email'] = "A user with this email address already exists.";
+            }
+
+            // Duplicate Check (Name/Username)
+            $stmtCheckName = $residentModel->conn->prepare("SELECT id FROM users WHERE name = :name LIMIT 1");
+            $stmtCheckName->execute([':name' => $_POST['name']]);
+            if ($stmtCheckName->rowCount() > 0) {
+                $errors['name'] = "This name/username is already taken.";
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $_SESSION['old_input'] = $_POST;
+                header("Location: /cultureconnect/residents/add");
+                exit();
+            }
+
             $residentModel = new Resident();
             $residentModel->name = $_POST['name'];
             $residentModel->email = $_POST['email'];
@@ -69,10 +96,17 @@ class ResidentController {
                     }
                 }
 
+                $_SESSION['success'] = "Resident added successfully.";
+                
+                // Send Welcome Email
+                EmailHelper::sendWelcomeEmail($_POST['email'], $_POST['name'], 'user');
+                
                 header("Location: /cultureconnect/residents");
                 exit();
             } else {
-                echo "Error adding resident.";
+                $_SESSION['errors'] = ["Error adding resident."];
+                header("Location: /cultureconnect/residents/add");
+                exit();
             }
         }
     }
@@ -112,8 +146,33 @@ class ResidentController {
 
     public function update() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $errors = [];
+            $id = $_POST['id'];
+            if (empty($_POST['area_id'])) $errors['area_id'] = "Area is required.";
+
             $residentModel = new Resident();
-            $residentModel->id = $_POST['id'];
+            // Duplicate Check (Email)
+            $stmtCheck = $residentModel->conn->prepare("SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1");
+            $stmtCheck->execute([':email' => $_POST['email'], ':id' => $id]);
+            if ($stmtCheck->rowCount() > 0) {
+                $errors['email'] = "Another user with this email address already exists.";
+            }
+
+            // Duplicate Check (Name/Username)
+            $stmtCheckName = $residentModel->conn->prepare("SELECT id FROM users WHERE name = :name AND id != :id LIMIT 1");
+            $stmtCheckName->execute([':name' => $_POST['name'], ':id' => $id]);
+            if ($stmtCheckName->rowCount() > 0) {
+                $errors['name'] = "This name/username is already taken by another user.";
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                header("Location: /cultureconnect/residents/edit?id=" . $id);
+                exit();
+            }
+
+            $residentModel = new Resident();
+            $residentModel->id = $id;
             $residentModel->name = $_POST['name'];
             $residentModel->email = $_POST['email'];
             $residentModel->age_group = $_POST['age_group'];
@@ -121,7 +180,7 @@ class ResidentController {
             $residentModel->area_id = $_POST['area_id'];
 
             if ($residentModel->update()) {
-                $user_id = $_POST['id'];
+                $user_id = $id;
                 
                 // Sync interests (delete then re-insert)
                 $database = new Database();
@@ -139,10 +198,13 @@ class ResidentController {
                     }
                 }
 
+                $_SESSION['success'] = "Resident updated successfully.";
                 header("Location: /cultureconnect/residents");
                 exit();
             } else {
-                echo "Error updating resident.";
+                $_SESSION['errors'] = ["Error updating resident."];
+                header("Location: /cultureconnect/residents/edit?id=" . $id);
+                exit();
             }
         }
     }
@@ -152,6 +214,7 @@ class ResidentController {
             $residentModel = new Resident();
             $residentModel->id = $_GET['id'];
             if ($residentModel->delete()) {
+                $_SESSION['success'] = "Resident account deleted successfully.";
                 header("Location: /cultureconnect/residents");
                 exit();
             } else {

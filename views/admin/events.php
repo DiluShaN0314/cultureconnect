@@ -57,8 +57,8 @@
                             <td>£<?php echo htmlspecialchars(number_format($p['price'], 2)); ?></td>
                             <td><?php echo htmlspecialchars($p['business_name'] ?? 'Vendor'); ?></td>
                             <td class="text-right">
-                                <a href="/cultureconnect/products/edit?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn-link mr-10">Edit</a>
-                                <a href="/cultureconnect/products/delete?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
+                                <a href="/cultureconnect/products/edit?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn-link mr-10" title="Edit"><i class="fas fa-edit"></i></a>
+                                <a href="/cultureconnect/products/delete?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this product?');" title="Delete"><i class="fas fa-trash-alt"></i></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

@@ -27,10 +27,31 @@
                         <td><?php echo $row['email']; ?></td>
                         <td><?php echo $row['area_name']; ?></td>
                         <td><?php echo $row['age_group']; ?></td>
-                        <td><span class="fs-12"><?php echo htmlspecialchars($row['interests'] ?? 'None'); ?></span></td>
+                        <td>
+                            <div class="interests-container">
+                                <button class="interests-toggle" title="View Interests">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                                <div class="interests-snippet">
+                                    <div class="snippet-header">Resident Interests</div>
+                                    <div class="snippet-body">
+                                        <?php if (!empty($row['interests'])): ?>
+                                            <?php 
+                                            $tags = explode(', ', $row['interests']);
+                                            foreach($tags as $tag): 
+                                            ?>
+                                                <span class="interest-tag"><?php echo htmlspecialchars($tag); ?></span>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted fs-12">No interests listed.</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                         <td class="text-right">
-                            <a href="/cultureconnect/residents/edit?id=<?php echo $row['id']; ?>" class="btn-link-edit" style="color: #3498db; text-decoration: none; margin-right: 10px;">Edit</a>
-                            <a href="/cultureconnect/residents/delete?id=<?php echo $row['id']; ?>" class="btn-link-delete" style="color: #e74c3c; text-decoration: none;" onclick="return confirm('Are you sure you want to delete this resident?')">Delete</a>
+                            <a href="/cultureconnect/residents/edit?id=<?php echo $row['id']; ?>" class="btn-link-edit" style="color: #3498db; text-decoration: none; margin-right: 10px;" title="Edit"><i class="fas fa-edit"></i></a>
+                            <a href="/cultureconnect/residents/delete?id=<?php echo $row['id']; ?>" class="btn-link-delete" style="color: #e74c3c; text-decoration: none;" onclick="return confirm('Are you sure you want to delete this resident?')" title="Delete"><i class="fas fa-trash-alt"></i></a>
                         </td>
                     </tr>
                 <?php endwhile; ?>

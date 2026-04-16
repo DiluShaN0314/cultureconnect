@@ -44,7 +44,7 @@
                 </tbody>
             </table>
             <div class="mt-15">
-                <a href="/cultureconnect/residents" class="btn-link">View All Residents &rarr;</a>
+                <a href="/cultureconnect/residents" class="btn-link">View All Residents <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
 
@@ -73,7 +73,7 @@
                 </tbody>
             </table>
             <div class="mt-15">
-                <a href="/cultureconnect/votes" class="btn-link">View All Votes &rarr;</a>
+                <a href="/cultureconnect/votes" class="btn-link">View All Votes <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
     </div>

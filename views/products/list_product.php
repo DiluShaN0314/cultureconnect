@@ -7,6 +7,8 @@
     <meta charset="UTF-8">
     <title>Manage Products - CultureConnect</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         body { font-family: 'Inter', sans-serif; background: #f4f6f9; margin: 0; }
         .navbar { background: #2c3e50; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; }
@@ -63,8 +65,8 @@
                             <td>£<?php echo htmlspecialchars(number_format($p['price'], 2)); ?></td>
                             <td><?php echo htmlspecialchars($p['business_name'] ?? 'Vendor'); ?></td>
                             <td>
-                                <a href="/cultureconnect/products/edit?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn btn-sm btn-warning">Edit</a>
-                                <a href="/cultureconnect/products/delete?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
+                                <a href="/cultureconnect/products/edit?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn btn-sm btn-warning" title="Edit"><i class="fas fa-edit"></i></a>
+                                <a href="/cultureconnect/products/delete?id=<?php echo htmlspecialchars($p['id']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?');" title="Delete"><i class="fas fa-trash-alt"></i></a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

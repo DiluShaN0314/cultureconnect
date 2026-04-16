@@ -73,13 +73,26 @@ class ProductController {
                 exit;
             }
 
+            $errors = [];
+            if (empty($_POST['name'])) $errors['name'] = "Product/Event Name is required.";
+            if (empty($_POST['category'])) $errors['category'] = "Category is required.";
+            if (empty($_POST['price'])) $errors['price'] = "Price is required.";
+            if ($_SESSION['role'] === 'admin' && empty($_POST['sme_id'])) $errors['sme_id'] = "SME Business is required.";
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $_SESSION['old_input'] = $_POST;
+                header("Location: /cultureconnect/products/add");
+                exit();
+            }
+
             $productModel = new Product();
             
             // Automatic SME ID for SME users
             if ($_SESSION['role'] === 'sme') {
                 $productModel->sme_id = $_SESSION['sme_id'];
             } else {
-                $productModel->sme_id = !empty($_POST['sme_id']) ? $_POST['sme_id'] : null;
+                $productModel->sme_id = $_POST['sme_id'];
             }
 
             $productModel->name = $_POST['name'];
@@ -93,7 +106,9 @@ class ProductController {
             $stmtCheck->execute();
 
             if ($stmtCheck->rowCount() > 0) {
-                echo "<script>alert('Error: This product is already registered for this business.'); window.history.back();</script>";
+                $_SESSION['errors'] = ["This product is already registered for this business."];
+                $_SESSION['old_input'] = $_POST;
+                header("Location: /cultureconnect/products/add");
                 exit;
             }
 
@@ -104,10 +119,13 @@ class ProductController {
             $productModel->availability = isset($_POST['availability']) ? 1 : 1;
 
             if ($productModel->create()) {
+                $_SESSION['success'] = "Product/Event added successfully.";
                 header("Location: /cultureconnect/events");
                 exit();
             } else {
-                echo "Error adding product.";
+                $_SESSION['errors'] = ["Error adding product."];
+                header("Location: /cultureconnect/products/add");
+                exit();
             }
         }
     }
@@ -156,8 +174,20 @@ class ProductController {
                 exit;
             }
 
+            $id = $_POST['id'];
+            $errors = [];
+            if (empty($_POST['name'])) $errors['name'] = "Product/Event Name is required.";
+            if (empty($_POST['category'])) $errors['category'] = "Category is required.";
+            if (empty($_POST['price'])) $errors['price'] = "Price is required.";
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                header("Location: /cultureconnect/products/edit?id=" . $id);
+                exit();
+            }
+
             $productModel = new Product();
-            $productModel->id = $_POST['id'];
+            $productModel->id = $id;
 
             // Ownership check
             $stmt = $productModel->readOne();
@@ -173,18 +203,31 @@ class ProductController {
             $productModel->price_category = $_POST['price_category'];
             $productModel->price = $_POST['price'];
             
-            // Allow admin to change SME ID
-            if ($_SESSION['role'] === 'admin' && isset($_POST['sme_id'])) {
-                $productModel->sme_id = $_POST['sme_id'];
-            } else {
-                $productModel->sme_id = $existing['sme_id'];
+            $productModel->sme_id = ($_SESSION['role'] === 'admin' && isset($_POST['sme_id'])) ? $_POST['sme_id'] : $existing['sme_id'];
+
+            // Exclusivity Check on Update
+            $database = new Database();
+            $conn = $database->getConnection();
+            $stmtCheck = $conn->prepare("SELECT id FROM products WHERE name = :name AND sme_id = :sme_id AND id != :id LIMIT 1");
+            $stmtCheck->bindParam(':name', $_POST['name']);
+            $stmtCheck->bindParam(':sme_id', $productModel->sme_id);
+            $stmtCheck->bindParam(':id', $id);
+            $stmtCheck->execute();
+
+            if ($stmtCheck->rowCount() > 0) {
+                $_SESSION['errors'] = ["This product name is already registered for this business."];
+                header("Location: /cultureconnect/products/edit?id=" . $id);
+                exit;
             }
 
             if ($productModel->update()) {
+                $_SESSION['success'] = "Product updated successfully.";
                 header("Location: /cultureconnect/events");
                 exit();
             } else {
-                echo "Error updating product.";
+                $_SESSION['errors'] = ["Error updating product."];
+                header("Location: /cultureconnect/products/edit?id=" . $id);
+                exit();
             }
         }
     }
@@ -208,6 +251,7 @@ class ProductController {
             }
 
             if ($productModel->delete()) {
+                $_SESSION['success'] = "Product/Event deleted successfully.";
                 header("Location: /cultureconnect/events");
                 exit();
             } else {

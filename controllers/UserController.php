@@ -85,12 +85,51 @@ class UserController {
                 exit();
             }
 
+            $errors = [];
+            $name = trim($_POST['name'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            
+            if (empty($name)) $errors['name'] = "Name is required.";
+            if (empty($email)) $errors['email'] = "Email is required.";
+            if ($_SESSION['role'] === 'user' && empty($_POST['area_id'])) $errors['area_id'] = "Area is required.";
+
             $user_id = $_SESSION['user_id'];
             $database = new Database();
             $conn = $database->getConnection();
 
-            $name = trim($_POST['name']);
-            $email = trim($_POST['email']);
+            // Duplicate Email Check
+            $stmtCheckEmail = $conn->prepare("SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1");
+            $stmtCheckEmail->execute([':email' => $email, ':id' => $user_id]);
+            if ($stmtCheckEmail->rowCount() > 0) {
+                $errors['email'] = "Another user with this email address already exists.";
+            }
+
+            // Duplicate Name (Username) Check
+            $stmtCheckName = $conn->prepare("SELECT id FROM users WHERE name = :name AND id != :id LIMIT 1");
+            $stmtCheckName->execute([':name' => $name, ':id' => $user_id]);
+            if ($stmtCheckName->rowCount() > 0) {
+                $errors['name'] = "This name/username is already taken by another user.";
+            }
+
+            if ($_SESSION['role'] === 'sme' && isset($_SESSION['sme_id'])) {
+                // Duplicate Business Name Check
+                $stmtCheckSme = $conn->prepare("SELECT id FROM smes WHERE business_name = :bn AND id != :id LIMIT 1");
+                $stmtCheckSme->execute([':bn' => $_POST['business_name'], ':id' => $_SESSION['sme_id']]);
+                if ($stmtCheckSme->rowCount() > 0) {
+                    $errors['business_name'] = "Another business with this name already exists.";
+                }
+
+                // Phone Validation
+                if (!empty($_POST['phone']) && !preg_match('/^[0-9\+\s]{7,15}$/', $_POST['phone'])) {
+                    $errors['phone'] = "Please enter a valid phone number.";
+                }
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                header("Location: /cultureconnect/profile");
+                exit();
+            }
             
             // Basic update info
             $sql = "UPDATE users SET name = :name, email = :email";
@@ -148,10 +187,13 @@ class UserController {
                 }
 
                 $_SESSION['username'] = $name; // Update session name
-                header("Location: /cultureconnect/profile?success=1");
+                $_SESSION['success'] = "Profile updated successfully.";
+                header("Location: /cultureconnect/profile");
                 exit();
             } else {
-                echo "Error updating profile.";
+                $_SESSION['errors'] = ["Error updating profile."];
+                header("Location: /cultureconnect/profile");
+                exit();
             }
         }
     }

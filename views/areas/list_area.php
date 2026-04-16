@@ -21,8 +21,8 @@
                         <td><?php echo $row['id']; ?></td>
                         <td><?php echo $row['name']; ?></td>
                         <td class="text-right">
-                            <a href="/cultureconnect/areas/edit?id=<?php echo $row['id']; ?>" class="btn-link mr-10">Edit</a>
-                            <a href="/cultureconnect/areas/delete?id=<?php echo $row['id']; ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this area?')">Delete</a>
+                            <a href="/cultureconnect/areas/edit?id=<?php echo $row['id']; ?>" class="btn-link mr-10" title="Edit"><i class="fas fa-edit"></i></a>
+                            <a href="/cultureconnect/areas/delete?id=<?php echo $row['id']; ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this area?')" title="Delete"><i class="fas fa-trash-alt"></i></a>
                         </td>
                     </tr>
                 <?php endwhile; ?>

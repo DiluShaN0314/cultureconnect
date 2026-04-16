@@ -78,6 +78,40 @@ class SMEController {
 
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $errors = [];
+            if (empty($_POST['business_name'])) $errors['business_name'] = "Business Name is required.";
+            if (empty($_POST['contact_email'])) $errors['contact_email'] = "Contact Email is required.";
+            
+            $smeModel = new SME();
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Duplicate Business Name Check
+            $stmtCheckName = $conn->prepare("SELECT id FROM smes WHERE business_name = :bn LIMIT 1");
+            $stmtCheckName->execute([':bn' => $_POST['business_name']]);
+            if ($stmtCheckName->rowCount() > 0) {
+                $errors['business_name'] = "An SME with this business name already exists.";
+            }
+
+            // Duplicate Email Check
+            $stmtCheckEmail = $conn->prepare("SELECT id FROM smes WHERE contact_email = :ce LIMIT 1");
+            $stmtCheckEmail->execute([':ce' => $_POST['contact_email']]);
+            if ($stmtCheckEmail->rowCount() > 0) {
+                $errors['contact_email'] = "This contact email is already registered for another SME.";
+            }
+
+            // Phone Validation
+            if (!empty($_POST['phone']) && !preg_match('/^[0-9\+\s]{7,15}$/', $_POST['phone'])) {
+                $errors['phone'] = "Please enter a valid phone number (7-15 digits, spaces and + allowed).";
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $_SESSION['old_input'] = $_POST;
+                header("Location: /cultureconnect/smes/add");
+                exit();
+            }
+
             $smeModel = new SME();
             $smeModel->business_name = $_POST['business_name'];
             $smeModel->contact_email = $_POST['contact_email'];
@@ -85,10 +119,13 @@ class SMEController {
             $smeModel->portfolio_link = $_POST['portfolio_link'];
 
             if ($smeModel->create()) {
+                $_SESSION['success'] = "SME added successfully.";
                 header("Location: /cultureconnect/smes");
                 exit();
             } else {
-                echo "Error adding SME.";
+                $_SESSION['errors'] = ['general' => "Error adding SME."];
+                header("Location: /cultureconnect/smes/add");
+                exit();
             }
         }
     }
@@ -112,18 +149,55 @@ class SMEController {
 
     public function update() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['id'];
+            $errors = [];
+            if (empty($_POST['business_name'])) $errors['business_name'] = "Business Name is required.";
+            if (empty($_POST['contact_email'])) $errors['contact_email'] = "Contact Email is required.";
+
             $smeModel = new SME();
-            $smeModel->id = $_POST['id'];
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Duplicate Business Name Check
+            $stmtCheckName = $conn->prepare("SELECT id FROM smes WHERE business_name = :bn AND id != :id LIMIT 1");
+            $stmtCheckName->execute([':bn' => $_POST['business_name'], ':id' => $id]);
+            if ($stmtCheckName->rowCount() > 0) {
+                $errors['business_name'] = "Another SME with this business name already exists.";
+            }
+
+            // Duplicate Email Check
+            $stmtCheckEmail = $conn->prepare("SELECT id FROM smes WHERE contact_email = :ce AND id != :id LIMIT 1");
+            $stmtCheckEmail->execute([':ce' => $_POST['contact_email'], ':id' => $id]);
+            if ($stmtCheckEmail->rowCount() > 0) {
+                $errors['contact_email'] = "This contact email is already registered for another SME.";
+            }
+
+            // Phone Validation
+            if (!empty($_POST['phone']) && !preg_match('/^[0-9\+\s]{7,15}$/', $_POST['phone'])) {
+                $errors['phone'] = "Please enter a valid phone number.";
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                header("Location: /cultureconnect/smes/edit?id=" . $id);
+                exit();
+            }
+
+            $smeModel = new SME();
+            $smeModel->id = $id;
             $smeModel->business_name = $_POST['business_name'];
             $smeModel->contact_email = $_POST['contact_email'];
             $smeModel->phone = $_POST['phone'];
             $smeModel->portfolio_link = $_POST['portfolio_link'];
 
             if ($smeModel->update()) {
+                $_SESSION['success'] = "SME updated successfully.";
                 header("Location: /cultureconnect/smes");
                 exit();
             } else {
-                echo "Error updating SME.";
+                $_SESSION['errors'] = ['general' => "Error updating SME."];
+                header("Location: /cultureconnect/smes/edit?id=" . $id);
+                exit();
             }
         }
     }
@@ -133,6 +207,7 @@ class SMEController {
             $smeModel = new SME();
             $smeModel->id = $_GET['id'];
             if ($smeModel->delete()) {
+                $_SESSION['success'] = "SME Profile deleted successfully.";
                 header("Location: /cultureconnect/smes");
                 exit();
             } else {

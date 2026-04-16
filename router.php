@@ -17,8 +17,11 @@ error_log("Parsed Request Path: $requestPath");
 $routes = [
     '' => ['controller' => 'UserController', 'method' => 'dashboard'],
     'login' => 'views/auth/login.php',
+    'forgot-password' => 'views/auth/forgot_password.php',
+    'reset-password' => 'views/auth/reset_password.php',
     'register' => 'views/auth/register.php',
     'logout' => 'views/auth/logout.php',
+
     'admin-dashboard' => ['controller' => 'AdminController', 'method' => 'index'],
     'admin/users/add' => ['controller' => 'AdminController', 'method' => 'addUser'],
     'admin/users/store' => ['controller' => 'AdminController', 'method' => 'storeUser'],

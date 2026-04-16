@@ -27,8 +27,8 @@
                         <td><?php echo $row['phone']; ?></td>
                         <td><a href="<?php echo $row['portfolio_link']; ?>" target="_blank"><?php echo $row['portfolio_link']; ?></a></td>
                         <td class="text-right">
-                            <a href="/cultureconnect/smes/edit?id=<?php echo $row['id']; ?>" class="btn-link mr-10">Edit</a>
-                            <a href="/cultureconnect/smes/delete?id=<?php echo $row['id']; ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this SME?')">Delete</a>
+                            <a href="/cultureconnect/smes/edit?id=<?php echo $row['id']; ?>" class="btn-link mr-10" title="Edit"><i class="fas fa-edit"></i></a>
+                            <a href="/cultureconnect/smes/delete?id=<?php echo $row['id']; ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this SME?')" title="Delete"><i class="fas fa-trash-alt"></i></a>
                         </td>
                     </tr>
                 <?php endwhile; ?>

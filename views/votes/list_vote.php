@@ -29,7 +29,7 @@
                     </td>
                     <?php if($_SESSION['role'] === 'admin'): ?>
                         <td class="text-right">
-                            <a href="/cultureconnect/votes/delete?id=<?php echo $row['id']; ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this vote?')">Remove</a>
+                            <a href="/cultureconnect/votes/delete?id=<?php echo $row['id']; ?>" class="btn-link-danger" onclick="return confirm('Are you sure you want to delete this vote?')" title="Delete"><i class="fas fa-trash-alt"></i></a>
                         </td>
                     <?php endif; ?>
                     </tr>

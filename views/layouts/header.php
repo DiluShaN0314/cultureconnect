@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>CultureConnect Dashboard</title>
 <link rel="stylesheet" href="/cultureconnect/assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="/cultureconnect/assets/js/script.js" defer></script>
+
 
 </head>
 
@@ -22,23 +25,37 @@
         }
     ?>
     <h2 class="m-0"><a href="<?php echo $home_link; ?>" class="logo-link">CultureConnect</a></h2>
-    <div>
-        <a href="/cultureconnect/profile" style="color:white; text-decoration:none; margin-right:15px;">👤 Profile</a>
-        Welcome <?php echo $_SESSION['username'] ?? "User"; ?>
-        | <a style="color:white;" href="/cultureconnect/logout">Logout</a>
+    <div class="profile-dropdown">
+        <div class="profile-btn">
+            <i class="fas fa-user-circle fa-lg"></i>
+            <span><?php echo htmlspecialchars($_SESSION['username'] ?? "User"); ?></span>
+            <i class="fas fa-chevron-down fa-xs"></i>
+        </div>
+        <div class="dropdown-content">
+            <a href="/cultureconnect/profile"><i class="fas fa-cog"></i> Profile Settings</a>
+            <a href="/cultureconnect/logout" style="color: #e74c3c;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
     </div>
 </div>
 
+<?php if (isset($_SESSION['success'])): ?>
+    <div id="success-banner" class="success-banner">
+        <i class="fas fa-check-circle"></i>
+        <span><?php echo $_SESSION['success']; ?></span>
+    </div>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+
 <div class="sidebar">
     <?php if ($role === 'admin'): ?>
-        <a href="/cultureconnect/residents">Manage Residents</a>
-        <a href="/cultureconnect/smes">Manage SMEs</a>
-        <a href="/cultureconnect/events">Manage Events</a>
-        <a href="/cultureconnect/areas">Manage Areas</a>
+        <a href="/cultureconnect/residents">Residents</a>
+        <a href="/cultureconnect/smes">SMEs</a>
+        <a href="/cultureconnect/events">Events</a>
+        <a href="/cultureconnect/areas">Areas</a>
         <a href="/cultureconnect/votes">Community Votes</a>
     <?php elseif ($role === 'sme'): ?>
         <a href="/cultureconnect/sme-dashboard">My Dashboard</a>
-        <a href="/cultureconnect/events">Manage Products & Events</a>
+        <a href="/cultureconnect/events">Products & Events</a>
         <a href="/cultureconnect/products/add">Add New Item</a>
         <a href="/cultureconnect/votes">Community Feedback</a>
         <a href="/cultureconnect/profile">Settings</a>

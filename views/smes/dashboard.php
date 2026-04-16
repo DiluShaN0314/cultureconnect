@@ -40,7 +40,7 @@
         <div class="activity card">
             <div class="flex-between mb-20 p-20 border-bottom">
                 <h3 class="m-0">Community Feedback</h3>
-                <a href="/cultureconnect/votes" class="btn-link">Analyze All &rarr;</a>
+                <a href="/cultureconnect/votes" class="btn-link">Analyze All <i class="fas fa-chart-line"></i></a>
             </div>
             <div class="p-20">
                 <?php if (count($recent_votes) > 0): ?>

@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$error = '';
+$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/config/database.php';
@@ -11,9 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     
-    if (empty($username) || empty($password)) {
-        $error = "Please enter both username and password.";
-    } else {
+    if (empty($username)) $errors['username'] = "Username or Email is required.";
+    if (empty($password)) $errors['password'] = "Password is required.";
+    
+    if (empty($errors)) {
         try {
             $database = new Database();
             $conn = $database->getConnection();
@@ -42,13 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     exit;
                 } else {
-                    $error = "Invalid password.";
+                    $errors['password'] = "Invalid password.";
                 }
             } else {
-                $error = "User not found.";
+                $errors['username'] = "User not found.";
             }
         } catch (PDOException $e) {
-            $error = "Database Error: " . $e->getMessage();
+            $errors['general'] = "Database Error: " . $e->getMessage();
         }
     }
 }
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CultureConnect</title>
     <link rel="stylesheet" href="/cultureconnect/assets/css/style.css">
+    <script src="/cultureconnect/assets/js/script.js" defer></script>
 </head>
 <body class="auth-body">
 
@@ -73,24 +75,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Please enter your details to sign in</p>
         </div>
 
-        <?php if(isset($error) && !empty($error)): ?>
+        <?php if (!empty($errors['general'])): ?>
             <div class="error-message">
-                <?php echo htmlspecialchars($error); ?>
+                <?php echo htmlspecialchars($errors['general']); ?>
             </div>
         <?php endif; ?>
 
         <form action="/cultureconnect/login" method="POST">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                <label for="username">Username <span class="asterisk">*</span></label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" data-required="true" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                <?php if (isset($errors['username'])): ?><span class="error-text"><?php echo $errors['username']; ?></span><?php endif; ?>
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <label for="password">Password <span class="asterisk">*</span></label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" data-required="true">
+                <?php if (isset($errors['password'])): ?><span class="error-text"><?php echo $errors['password']; ?></span><?php endif; ?>
+            </div>
+
+            <div class="form-group" style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+                <a href="/cultureconnect/forgot-password" style="font-size: 14px; color: #3498db; text-decoration: none;">Forgot Password?</a>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">Login</button>
+
         </form>
 
         <div class="login-footer">

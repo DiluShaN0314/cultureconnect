@@ -77,6 +77,7 @@ class VoteController {
             $voteModel = new Vote();
             $voteModel->id = $_GET['id'];
             if ($voteModel->delete()) {
+                $_SESSION['success'] = "Vote removed successfully.";
                 header("Location: /cultureconnect/votes");
                 exit();
             } else {

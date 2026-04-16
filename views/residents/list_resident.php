@@ -27,8 +27,8 @@
                         <td><?php echo $row['area_name']; ?></td>
                         <td><?php echo $row['age_group']; ?></td>
                         <td style="text-align: right;">
-                            <a href="/cultureconnect/residents/edit?id=<?php echo $row['id']; ?>" style="color: #3498db; text-decoration: none; margin-right: 10px;">Edit</a>
-                            <a href="/cultureconnect/residents/delete?id=<?php echo $row['id']; ?>" style="color: #e74c3c; text-decoration: none;" onclick="return confirm('Are you sure you want to delete this resident?')">Delete</a>
+                            <a href="/cultureconnect/residents/edit?id=<?php echo $row['id']; ?>" style="color: #3498db; text-decoration: none; margin-right: 18px;" title="Edit"><i class="fas fa-edit"></i></a>
+                            <a href="/cultureconnect/residents/delete?id=<?php echo $row['id']; ?>" style="color: #e74c3c; text-decoration: none;" onclick="return confirm('Are you sure you want to delete this resident?')" title="Delete"><i class="fas fa-trash-alt"></i></a>
                         </td>
                     </tr>
                 <?php endwhile; ?>

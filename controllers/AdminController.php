@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/config/database.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/cultureconnect/utils/EmailHelper.php';
 
 class AdminController {
     private $conn;
@@ -76,14 +77,59 @@ class AdminController {
 
     public function storeUser() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $errors = [];
+            $role = $_POST['role'] ?? 'user';
+            $name = $_POST['name'] ?? '';
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($name)) $errors['name'] = "Full Name is required.";
+            if (empty($email)) $errors['email'] = "Email is required.";
+            if (empty($password)) $errors['password'] = "Password is required.";
+            if ($role === 'sme' && empty($_POST['business_name'])) $errors['business_name'] = "Business Name is required for SME.";
+            if ($role === 'user' && empty($_POST['area_id'])) $errors['area_id'] = "Area is required for Residents.";
+
             $database = new Database();
             $conn = $database->getConnection();
 
-            $role = $_POST['role'];
-            $name = $_POST['name'];
-            $email = $_POST['email'];
-            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            
+            // Duplicate Email Check (Global for all users)
+            $stmtCheckEmail = $conn->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
+            $stmtCheckEmail->execute([':email' => $email]);
+            if ($stmtCheckEmail->rowCount() > 0) {
+                $errors['email'] = "A user with this email address already exists.";
+            }
+
+            // Duplicate Name (Username) Check
+            $stmtCheckName = $conn->prepare("SELECT id FROM users WHERE name = :name LIMIT 1");
+            $stmtCheckName->execute([':name' => $name]);
+            if ($stmtCheckName->rowCount() > 0) {
+                $errors['name'] = "This name/username is already taken.";
+            }
+
+            if ($role === 'sme') {
+                // Duplicate Business Name Check
+                $stmtCheckSme = $conn->prepare("SELECT id FROM smes WHERE business_name = :bn LIMIT 1");
+                $stmtCheckSme->execute([':bn' => $_POST['business_name']]);
+                if ($stmtCheckSme->rowCount() > 0) {
+                    $errors['business_name'] = "An SME with this business name already exists.";
+                }
+
+                // Phone Validation
+                if (!empty($_POST['phone']) && !preg_match('/^[0-9\+\s]{7,15}$/', $_POST['phone'])) {
+                    $errors['phone'] = "Please enter a valid phone number.";
+                }
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                $_SESSION['old_input'] = $_POST;
+                header("Location: /cultureconnect/admin/users/add");
+                exit();
+            }
+
+            $database = new Database();
+            $conn = $database->getConnection();
+
             try {
                 $conn->beginTransaction();
 
@@ -109,7 +155,7 @@ class AdminController {
                 $stmt->execute([
                     ':name' => $name,
                     ':email' => $email,
-                    ':password' => $password,
+                    ':password' => password_hash($password, PASSWORD_DEFAULT),
                     ':role' => $role,
                     ':age_group' => $age_group,
                     ':gender' => $gender,
@@ -128,11 +174,17 @@ class AdminController {
                 }
 
                 $conn->commit();
-                header("Location: /cultureconnect/residents?success=1");
+
+                // Send Welcome Email
+                EmailHelper::sendWelcomeEmail($email, $name, $role);
+                $_SESSION['success'] = "User added successfully.";
+                header("Location: /cultureconnect/residents");
                 exit();
             } catch (Exception $e) {
-                $conn->rollBack();
-                echo "Error adding user: " . $e->getMessage();
+                if ($conn->inTransaction()) $conn->rollBack();
+                $_SESSION['errors'] = ["Error adding user: " . $e->getMessage()];
+                header("Location: /cultureconnect/admin/users/add");
+                exit();
             }
         }
     }

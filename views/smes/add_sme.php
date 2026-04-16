@@ -3,27 +3,34 @@
 <div class="content">
     <div class="flex-between mb-20">
         <h2>Add New SME</h2>
-        <a href="/cultureconnect/smes" class="btn btn-secondary">&larr; Back to SMEs</a>
+        <a href="/cultureconnect/smes" class="btn btn-secondary" title="Back"><i class="fas fa-arrow-left"></i></a>
     </div>
 
     <div class="activity max-width-600">
+        <?php 
+        $errors = $_SESSION['errors'] ?? [];
+        unset($_SESSION['errors']);
+        ?>
         <form action="/cultureconnect/smes/store" method="POST">
             <div class="form-group">
-                <label>Business Name</label>
-                <input type="text" name="business_name" required>
+                <label for="business_name">Business Name <span class="asterisk">*</span></label>
+                <input type="text" id="business_name" name="business_name" data-required="true" value="<?php echo htmlspecialchars($_SESSION['old_input']['business_name'] ?? ''); ?>">
+                <?php if (isset($errors['business_name'])): ?><span class="error-text"><?php echo $errors['business_name']; ?></span><?php endif; ?>
             </div>
             <div class="form-group">
-                <label>Contact Email</label>
-                <input type="email" name="contact_email" required>
+                <label for="contact_email">Contact Email <span class="asterisk">*</span></label>
+                <input type="email" id="contact_email" name="contact_email" data-required="true" value="<?php echo htmlspecialchars($_SESSION['old_input']['contact_email'] ?? ''); ?>">
+                <?php if (isset($errors['contact_email'])): ?><span class="error-text"><?php echo $errors['contact_email']; ?></span><?php endif; ?>
             </div>
             <div class="form-group">
-                <label>Phone</label>
-                <input type="text" name="phone">
+                <label for="phone">Phone</label>
+                <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($_SESSION['old_input']['phone'] ?? ''); ?>">
             </div>
             <div class="form-group">
-                <label>Portfolio Link</label>
-                <input type="url" name="portfolio_link">
+                <label for="portfolio_link">Portfolio Link</label>
+                <input type="url" id="portfolio_link" name="portfolio_link" value="<?php echo htmlspecialchars($_SESSION['old_input']['portfolio_link'] ?? ''); ?>">
             </div>
+            <?php unset($_SESSION['old_input']); ?>
             <div class="flex-gap-10">
                 <button type="submit" class="btn btn-success">Save SME</button>
                 <a href="/cultureconnect/smes" class="btn btn-secondary">Cancel</a>

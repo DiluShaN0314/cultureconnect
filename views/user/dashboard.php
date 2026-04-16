@@ -35,7 +35,7 @@
     <div class="mb-30">
         <div class="flex-between mb-15">
             <h3>Recommend for You</h3>
-            <a href="/cultureconnect/products" class="btn-link">View All Events &rarr;</a>
+            <a href="/cultureconnect/products" class="btn-link">View All Events <i class="fas fa-calendar-alt"></i></a>
         </div>
         
         <div class="grid-3">
