@@ -23,7 +23,7 @@
         .btn-danger:hover { background: #c0392b; }
         .btn-warning { background: #f39c12; }
         .btn-warning:hover { background: #d68910; }
-        
+
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ecf0f1; }
         th { background: #34495e; color: white; font-weight: 600; }
@@ -41,7 +41,7 @@
     <div class="container">
         <div class="header">
             <h2 style="margin:0; color: #2c3e50;">Manage Products</h2>
-            <a href="/cultureconnect/products/add" class="btn">+ Add New Product</a>
+            <a href="/cultureconnect/products/add" class="btn">+ Add New Product/Event</a>
         </div>
 
         <table>

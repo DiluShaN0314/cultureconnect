@@ -50,7 +50,7 @@
     <?php if ($role === 'admin'): ?>
         <a href="/cultureconnect/residents">Residents</a>
         <a href="/cultureconnect/smes">SMEs</a>
-        <a href="/cultureconnect/events">Events</a>
+        <a href="/cultureconnect/events">Products & Events</a>
         <a href="/cultureconnect/areas">Areas</a>
         <a href="/cultureconnect/votes">Community Votes</a>
     <?php elseif ($role === 'sme'): ?>

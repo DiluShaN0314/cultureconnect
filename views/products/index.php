@@ -4,7 +4,7 @@
     <div class="flex-between mb-20">
         <h2 class="m-0 color-dark">Cultural Products & Services</h2>
         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-            <a href="/cultureconnect/products/add" class="btn btn-primary">+ Add New Product</a>
+            <a href="/cultureconnect/products/add" class="btn btn-primary">+ Add New Product/Event</a>
         <?php endif; ?>
     </div>
 
@@ -23,7 +23,7 @@
                     <option value="Digital Media" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Digital Media') ? 'selected' : ''; ?>>Digital Media</option>
                     <option value="Heritage" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Heritage') ? 'selected' : ''; ?>>Heritage</option>
                 </select>
-                
+
                 <label class="flex-gap-5 items-center cursor-pointer">
                     <input type="checkbox" name="price_limit" value="200" <?php echo (isset($_GET['price_limit']) && $_GET['price_limit'] == '200') ? 'checked' : ''; ?>>
                     <span>Under £200</span>
@@ -39,7 +39,7 @@
 
     <div class="grid-3">
         <?php if(count($products) > 0): ?>
-            <?php foreach($products as $p): 
+            <?php foreach($products as $p):
                 $current_vote = $user_votes[$p['id']] ?? null;
             ?>
                 <div class="activity p-20 br-8">
@@ -47,17 +47,17 @@
                         <span class="badge badge-success"><?php echo htmlspecialchars($p['category']); ?></span>
                         <span class="fs-12 text-muted"><?php echo htmlspecialchars($p['price_category']); ?></span>
                     </div>
-                    
+
                     <h3 class="m-0"><?php echo htmlspecialchars($p['name']); ?></h3>
                     <p class="text-muted fs-14 mb-15"><?php echo htmlspecialchars($p['description']); ?></p>
-                    
+
                     <div class="fs-12 text-bold mb-15">
                         By: <?php echo htmlspecialchars($p['business_name'] ?? 'Local Vendor'); ?>
                     </div>
 
                     <div class="flex-between items-center border-top p-top-15">
                         <div class="fs-20 text-bold color-success">£<?php echo number_format($p['price'], 2); ?></div>
-                        
+
                         <?php if(isset($_SESSION['user_id']) && $_SESSION['role'] === 'user'): ?>
                             <div class="flex-gap-10">
                                 <form action="/cultureconnect/votes/store" method="POST" style="display:inline;">
